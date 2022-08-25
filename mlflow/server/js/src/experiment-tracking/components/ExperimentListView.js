@@ -15,12 +15,16 @@ import { CreateExperimentModal } from './modals/CreateExperimentModal';
 import { DeleteExperimentModal } from './modals/DeleteExperimentModal';
 import { RenameExperimentModal } from './modals/RenameExperimentModal';
 import { IconButton } from '../../common/components/IconButton';
+import { LoadMoreBar } from './LoadMoreBar';
 
 export class ExperimentListView extends Component {
   static propTypes = {
     activeExperimentIds: PropTypes.arrayOf(PropTypes.string).isRequired,
     experiments: PropTypes.arrayOf(Experiment).isRequired,
     history: PropTypes.object.isRequired,
+    // numExperimentsFromLatestSearch: PropTypes.number,
+    // handleLoadMoreExperiments: PropTypes.func.isRequired,
+    // loadingMore: PropTypes.bool.isRequired,
   };
 
   state = {
@@ -31,11 +35,16 @@ export class ExperimentListView extends Component {
     showRenameExperimentModal: false,
     selectedExperimentId: '0',
     selectedExperimentName: '',
+    maxExperimentsToShow: 100,
   };
 
   handleSearchInputChange = (event) => {
     this.setState({ searchInput: event.target.value });
   };
+  handleSearchInputEnter = (event) => {
+      // TODO: make an api call here and update the experiment list, update the state
+      this.setState({searchInput: event.target.value});
+  }
 
   updateSelectedExperiment = (experimentId, experimentName) => {
     this.setState({
@@ -144,11 +153,19 @@ export class ExperimentListView extends Component {
     }
 
     const { searchInput } = this.state;
-    const { experiments, activeExperimentIds } = this.props;
+    const { 
+        experiments, 
+        activeExperimentIds, 
+        // loadingMore,
+        // handleLoadMoreExperiments,
+        // numRunsFromLatestSearch
+    } = this.props;
+
     const lowerCasedSearchInput = searchInput.toLowerCase();
+    // const showLoadMore = this.state.isAtScrollBottom || this.props.loadingMore;
     const filteredExperiments = experiments.filter(({ name }) =>
       name.toLowerCase().includes(lowerCasedSearchInput),
-    );
+    ).slice(0, this.state.maxExperimentsToShow);
     const treeData = filteredExperiments.map(({ name, experiment_id }) => ({
       title: name,
       key: experiment_id,
@@ -206,6 +223,7 @@ export class ExperimentListView extends Component {
             aria-label='search experiments'
             value={searchInput}
             onChange={this.handleSearchInputChange}
+            onPressEnter={this.handleSearchInputEnter}
             data-test-id='search-experiment-input'
           />
           <div css={classNames.experimentListContainer}>
@@ -228,6 +246,29 @@ export class ExperimentListView extends Component {
   }
 }
 
+//TODO implement the load more bar which searches for more experiments based on the 
+// search criteria or just lists more "search with wildcard for all"
+// Will need to maintain state for the search experiments pagetoken
+// Or possibly needs to list experiments if we have not searched.
+              // showLoadMore ? (
+                // <LoadMoreBar
+                  // key='load-more-row'
+                  // loadingMore={loadingMore}
+                  // onLoadMore={handleLoadMoreExperiments}
+                  // disableButton={ExperimentViewUtil.disableLoadMoreButton({
+                    // numRunsFromLatestSearch: numRunsFromLatestSearch,
+                    // nextPageToken,
+                  // })}
+                  // nestChildren={nestChildren}
+                  // style={{
+                    // position: 'absolute',
+                    // bottom: 20,
+                    // border: BORDER_STYLE,
+                    // width: tableWidth,
+                    // height: LOAD_MORE_ROW_HEIGHT,
+                  // }}
+                // />
+              // ) : null,
 const classNames = {
   experimentListOuterContainer: {
     boxSizing: 'border-box',

@@ -75,7 +75,7 @@ const mapStateToProps = (state, ownProps) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     dispatchListExperimentsApi: (requestId) => {
-      return dispatch(listExperimentsApi(requestId));
+      return dispatch(listExperimentsApi({id: requestId}));
     },
   };
 };

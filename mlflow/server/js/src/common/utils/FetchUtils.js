@@ -277,6 +277,7 @@ export const getJson = (props) => {
 
 export const postJson = (props) => {
   const { data } = props;
+    console.log(generateJsonBody(props))
   return fetchEndpoint({
     ...props,
     method: HTTPMethods.POST,
