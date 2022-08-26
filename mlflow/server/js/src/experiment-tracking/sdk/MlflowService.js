@@ -6,7 +6,7 @@
  *   Aug 1, 2018 3:42:41 PM. We will update the generation pipeline to actually
  *   place these generated objects in the correct location shortly.
  */
-import { getBigIntJson, postJson } from '../../common/utils/FetchUtils';
+import { getBigIntJson, postJson, getJson } from '../../common/utils/FetchUtils';
 
 export class MlflowService {
   /**
@@ -31,7 +31,13 @@ export class MlflowService {
    * List mlflow experiments
    */
   static listExperiments = (data) =>
-    getBigIntJson({ relativeUrl: 'ajax-api/2.0/preview/mlflow/experiments/list', data });
+    getJson({ relativeUrl: 'ajax-api/2.0/mlflow/experiments/list', data });
+
+  /**
+   * Search mlflow experiments
+   */
+  static searchExperiments = (data) =>
+    postJson({ relativeUrl: 'ajax-api/2.0/mlflow/experiments/search', data });
 
   /**
    * Get mlflow experiment

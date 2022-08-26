@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import qs from 'qs';
-import { listExperimentsApi } from '../actions';
+import { listExperimentsApi, searchExperimentsApi } from '../actions';
 import RequestStateWrapper from '../../common/components/RequestStateWrapper';
 import './HomePage.css';
 import HomeView from './HomeView';
@@ -54,6 +54,9 @@ export class HomePageImpl extends Component {
 
 const mapStateToProps = (state, ownProps) => {
   const { match } = ownProps;
+  console.log(ownProps);
+  console.log(match);
+  console.log(match.params.experiments);
   if (match.url === '/') {
     return {};
   }
@@ -74,8 +77,8 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    dispatchListExperimentsApi: (requestId) => {
-      return dispatch(listExperimentsApi(requestId));
+      dispatchListExperimentsApi: (requestId) => {
+      return dispatch(searchExperimentsApi({id: requestId}));
     },
   };
 };

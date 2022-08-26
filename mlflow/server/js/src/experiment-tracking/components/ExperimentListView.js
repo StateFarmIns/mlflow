@@ -132,6 +132,7 @@ export class ExperimentListView extends Component {
 
   render() {
     const { hidden } = this.state;
+    console.log(this.props.experiments)
     if (hidden) {
       return (
         <CaretDownSquareIcon

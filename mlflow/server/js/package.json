@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "^16.15.0"
+    "node": ">=16.15.0"
   },
   "dependencies": {
     "@ag-grid-community/client-side-row-model": "^27.2.1",
@@ -122,7 +122,7 @@
   },
   "scripts": {
     "//": "IMPORTANT: For compatibility with Windows in MLflow OSS, do NOT inline environment variables in scripts other than `start-web`, `start:mfe` and `test:ci`. Environment variables can instead be set in `mlflow/server/js/scripts/global-setup.js`.",
-    "start": "craco start",
+    "start": "NODE_OPTIONS=--openssl-legacy-provider craco start",
     "start:iframe": "HIDE_HEADER=true HIDE_EXPERIMENT_LIST=true SHOW_GDPR_PURGING_MESSAGES=true USE_ABSOLUTE_AJAX_URLS=true SHOULD_REDIRECT_IFRAME=true craco start",
     "start:mfe": "PUBLIC_URL=/ MLFLOW_MFE_DEV=true npm run start:iframe",
     "build": "craco --max_old_space_size=8192 build",

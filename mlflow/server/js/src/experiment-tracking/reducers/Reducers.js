@@ -4,9 +4,9 @@ import {
   GET_EXPERIMENT_API,
   GET_RUN_API,
   LIST_ARTIFACTS_API,
-  LIST_EXPERIMENTS_API,
   OPEN_ERROR_MODAL,
   SEARCH_RUNS_API,
+  SEARCH_EXPERIMENTS_API,
   LOAD_MORE_RUNS_API,
   SET_EXPERIMENT_TAG_API,
   SET_TAG_API,
@@ -44,9 +44,10 @@ export const getExperiment = (id, state) => {
 
 export const experimentsById = (state = {}, action) => {
   switch (action.type) {
-    case fulfilled(LIST_EXPERIMENTS_API): {
+    case fulfilled(SEARCH_EXPERIMENTS_API): {
       let newState = Object.assign({}, state);
       if (action.payload && action.payload.experiments) {
+        console.log(action.payload);
         // reset experimentsById state
         // doing this enables us to capture if an experiment was deleted
         // if we kept the old state and updated the experiments based on their id,
@@ -411,6 +412,8 @@ export const getAllMetricKeysByRunUuids = (runUuids, state) =>
   );
 
 export const getApis = (requestIds, state) => {
+  console.log(requestIds)
+  console.log(state.apis)
   return requestIds.map((id) => state.apis[id] || {});
 };
 

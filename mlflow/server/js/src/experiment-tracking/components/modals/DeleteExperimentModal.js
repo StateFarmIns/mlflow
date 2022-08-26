@@ -16,7 +16,6 @@ export class DeleteExperimentModalImpl extends Component {
     experimentId: PropTypes.string.isRequired,
     experimentName: PropTypes.string.isRequired,
     deleteExperimentApi: PropTypes.func.isRequired,
-    listExperimentsApi: PropTypes.func.isRequired,
     history: PropTypes.object.isRequired,
   };
 
@@ -42,7 +41,6 @@ export class DeleteExperimentModalImpl extends Component {
           }
         }
       })
-      .then(() => this.props.listExperimentsApi(deleteExperimentRequestId))
       .catch((e) => {
         Utils.logErrorAndNotifyUser(e);
       });
