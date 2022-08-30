@@ -5,7 +5,7 @@ import { Redirect } from 'react-router';
 import { Spacer } from '@databricks/design-system';
 import ExperimentListView from './ExperimentListView';
 import ExperimentPage from './ExperimentPage';
-import { getExperiments, getNextPageToken } from '../reducers/Reducers';
+import { getExperiments } from '../reducers/Reducers';
 import { NoExperimentView } from './NoExperimentView';
 import Utils from '../../common/utils/Utils';
 import { PageContainer } from '../../common/components/PageContainer';
@@ -57,9 +57,7 @@ class HomeView extends Component {
       <div className='outer-container' style={{ height: containerHeight }}>
         <div>
           <Spacer />
-          <ExperimentListView 
-             activeExperimentIds={experimentIds || []}
-        />
+          <ExperimentListView activeExperimentIds={experimentIds || []} />
         </div>
         <PageContainer>
           {hasExperiments ? (

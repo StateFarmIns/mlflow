@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import qs from 'qs';
-import { listExperimentsApi, searchExperimentsApi } from '../actions';
+import { searchExperimentsApi } from '../actions';
 import RequestStateWrapper from '../../common/components/RequestStateWrapper';
 import './HomePage.css';
 import HomeView from './HomeView';
@@ -27,7 +27,7 @@ export class HomePageImpl extends Component {
 
   componentDidMount() {
     if (process.env.HIDE_EXPERIMENT_LIST !== 'true') {
-      this.props.dispatchListExperimentsApi({id: this.state.listExperimentsRequestId});
+      this.props.dispatchListExperimentsApi({ id: this.state.listExperimentsRequestId });
       console.log(this.props);
     }
   }
@@ -75,7 +75,7 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-      dispatchListExperimentsApi: (params) => {
+    dispatchListExperimentsApi: (params) => {
       return dispatch(searchExperimentsApi(params));
     },
   };

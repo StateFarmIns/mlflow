@@ -11,6 +11,7 @@ import {
 } from '@databricks/design-system';
 import { Link, withRouter } from 'react-router-dom';
 import { Experiment } from '../sdk/MlflowMessages';
+import { getUUID } from '../../common/utils/ActionUtils';
 import { searchExperimentsApi } from '../actions';
 import { getExperiments, getNextPageToken } from '../reducers/Reducers';
 import Routes from '../routes';
@@ -31,22 +32,41 @@ export class ExperimentListView extends Component {
   state = {
     hidden: false,
     searchInput: '',
+    previousSearchInput: '',
     showCreateExperimentModal: false,
     showDeleteExperimentModal: false,
     showRenameExperimentModal: false,
     selectedExperimentId: '0',
     selectedExperimentName: '',
+    loadingMore: false,
   };
 
   handleSearchInputChange = (event) => {
     this.setState({ searchInput: event.target.value });
   };
 
-  handleSearchInputEnter = (event) => {
-    console.log(event);
-    console.log(event.target.value);
-    this.setState({ searchInput: event.target.value });
-    this.props.dispatchExperimentsApi({filter: `name LIKE '%${event.target.value}%'`});
+  handleLoadMore = (event) => {
+    this.setState({ previousSearchInput: this.state.searchInput });
+
+    this.setState({ loadingMore: true });
+
+    let params = {};
+
+    // Leave the filter off if we have a blank string.
+    console.log(this.state.previousSearchInput);
+    console.log(this.state.searchInput);
+    if (this.state.searchInput !== '') {
+      params = { ...params, filter: `name LIKE '%${this.state.searchInput}%'` };
+    }
+    // Use a next page if the input was not altered to get more.
+    if (this.state.searchInput === this.state.previousSearchInput) {
+      params = { ...params, pageToken: this.props.nextPageToken };
+    }
+
+    console.log(params);
+
+    this.props.dispatchExperimentsApi(params);
+    this.setState({ loadingMore: false });
   };
 
   updateSelectedExperiment = (experimentId, experimentName) => {
@@ -158,6 +178,7 @@ export class ExperimentListView extends Component {
     const { searchInput } = this.state;
     const { experiments, activeExperimentIds } = this.props;
     const lowerCasedSearchInput = searchInput.toLowerCase();
+    // TODO this is the slow part
     const filteredExperiments = experiments.filter(({ name }) =>
       name.toLowerCase().includes(lowerCasedSearchInput),
     );
@@ -218,7 +239,7 @@ export class ExperimentListView extends Component {
             aria-label='search experiments'
             value={searchInput}
             onChange={this.handleSearchInputChange}
-            onPressEnter={this.handleSearchInputEnter}
+            onPressEnter={this.handleLoadMore}
             data-test-id='search-experiment-input'
           />
           <div css={classNames.experimentListContainer}>
@@ -263,16 +284,16 @@ const classNames = {
   },
 };
 
-const mapStateToProps = (state, ownProps) => {
+const mapStateToProps = (state) => {
   const experiments = getExperiments(state);
   const nextPageToken = getNextPageToken(state);
-  console.log(experiments, nextPageToken);
-  return { experiments, nextPageToken};
+  console.log(nextPageToken);
+  return { experiments, nextPageToken };
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
-      dispatchExperimentsApi: (params) => {
+    dispatchExperimentsApi: (params) => {
       return dispatch(searchExperimentsApi(params));
     },
   };
