@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import {
   Tree,
   Input,
@@ -10,6 +11,8 @@ import {
 } from '@databricks/design-system';
 import { Link, withRouter } from 'react-router-dom';
 import { Experiment } from '../sdk/MlflowMessages';
+import { searchExperimentsApi } from '../actions';
+import { getExperiments, getNextPageToken } from '../reducers/Reducers';
 import Routes from '../routes';
 import { CreateExperimentModal } from './modals/CreateExperimentModal';
 import { DeleteExperimentModal } from './modals/DeleteExperimentModal';
@@ -19,7 +22,9 @@ import { IconButton } from '../../common/components/IconButton';
 export class ExperimentListView extends Component {
   static propTypes = {
     activeExperimentIds: PropTypes.arrayOf(PropTypes.string).isRequired,
-    experiments: PropTypes.arrayOf(Experiment).isRequired,
+    dispatchExperimentsApi: PropTypes.func.isRequired,
+    experiments: PropTypes.arrayOf(PropTypes.object),
+    nextPageToken: PropTypes.string,
     history: PropTypes.object.isRequired,
   };
 
@@ -35,6 +40,13 @@ export class ExperimentListView extends Component {
 
   handleSearchInputChange = (event) => {
     this.setState({ searchInput: event.target.value });
+  };
+
+  handleSearchInputEnter = (event) => {
+    console.log(event);
+    console.log(event.target.value);
+    this.setState({ searchInput: event.target.value });
+    this.props.dispatchExperimentsApi({filter: `name LIKE '%${event.target.value}%'`});
   };
 
   updateSelectedExperiment = (experimentId, experimentName) => {
@@ -132,7 +144,6 @@ export class ExperimentListView extends Component {
 
   render() {
     const { hidden } = this.state;
-    console.log(this.props.experiments)
     if (hidden) {
       return (
         <CaretDownSquareIcon
@@ -207,6 +218,7 @@ export class ExperimentListView extends Component {
             aria-label='search experiments'
             value={searchInput}
             onChange={this.handleSearchInputChange}
+            onPressEnter={this.handleSearchInputEnter}
             data-test-id='search-experiment-input'
           />
           <div css={classNames.experimentListContainer}>
@@ -251,4 +263,19 @@ const classNames = {
   },
 };
 
-export default withRouter(ExperimentListView);
+const mapStateToProps = (state, ownProps) => {
+  const experiments = getExperiments(state);
+  const nextPageToken = getNextPageToken(state);
+  console.log(experiments, nextPageToken);
+  return { experiments, nextPageToken};
+};
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+      dispatchExperimentsApi: (params) => {
+      return dispatch(searchExperimentsApi(params));
+    },
+  };
+};
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(ExperimentListView));

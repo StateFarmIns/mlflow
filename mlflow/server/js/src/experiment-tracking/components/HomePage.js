@@ -27,7 +27,8 @@ export class HomePageImpl extends Component {
 
   componentDidMount() {
     if (process.env.HIDE_EXPERIMENT_LIST !== 'true') {
-      this.props.dispatchListExperimentsApi(this.state.listExperimentsRequestId);
+      this.props.dispatchListExperimentsApi({id: this.state.listExperimentsRequestId});
+      console.log(this.props);
     }
   }
 
@@ -54,9 +55,6 @@ export class HomePageImpl extends Component {
 
 const mapStateToProps = (state, ownProps) => {
   const { match } = ownProps;
-  console.log(ownProps);
-  console.log(match);
-  console.log(match.params.experiments);
   if (match.url === '/') {
     return {};
   }
@@ -77,8 +75,8 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-      dispatchListExperimentsApi: (requestId) => {
-      return dispatch(searchExperimentsApi({id: requestId}));
+      dispatchListExperimentsApi: (params) => {
+      return dispatch(searchExperimentsApi(params));
     },
   };
 };
