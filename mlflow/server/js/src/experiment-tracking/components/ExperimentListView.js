@@ -31,6 +31,7 @@ export class ExperimentListView extends Component {
 
   state = {
     hidden: false,
+    searchBoxValue: '',
     searchInput: '',
     previousSearchInput: '',
     showCreateExperimentModal: false,
@@ -42,11 +43,15 @@ export class ExperimentListView extends Component {
   };
 
   handleSearchInputChange = (event) => {
-    this.setState({ searchInput: event.target.value });
+    this.setState({ searchBoxValue: event.target.value });
   };
 
   handleLoadMore = (event) => {
-    this.setState({ previousSearchInput: this.state.searchInput });
+    console.log(event.target.value);
+    this.setState((prevState) => ({
+      previousSearchInput: prevState.searchInput,
+      searchInput: event.target.value,
+    }));
 
     this.setState({ loadingMore: true });
 
@@ -64,9 +69,11 @@ export class ExperimentListView extends Component {
     }
 
     console.log(params);
+    console.log(this.state.loadingMore);
 
     this.props.dispatchExperimentsApi(params);
     this.setState({ loadingMore: false });
+    console.log(this.state.loadingMore);
   };
 
   updateSelectedExperiment = (experimentId, experimentName) => {
@@ -163,7 +170,9 @@ export class ExperimentListView extends Component {
   };
 
   render() {
-    const { hidden } = this.state;
+    const { hidden, searchBoxValue, searchInput, loadingMore } = this.state;
+    console.log('!!!!! RENDER !!!!!!');
+    console.log(loadingMore);
     if (hidden) {
       return (
         <CaretDownSquareIcon
@@ -175,7 +184,6 @@ export class ExperimentListView extends Component {
       );
     }
 
-    const { searchInput } = this.state;
     const { experiments, activeExperimentIds } = this.props;
     const lowerCasedSearchInput = searchInput.toLowerCase();
     // TODO this is the slow part
@@ -186,6 +194,8 @@ export class ExperimentListView extends Component {
       title: name,
       key: experiment_id,
     }));
+    console.log('finished mapping');
+    console.log(filteredExperiments.length);
 
     return (
       <div css={classNames.experimentListOuterContainer}>
@@ -237,24 +247,29 @@ export class ExperimentListView extends Component {
           <Input
             placeholder='Search Experiments'
             aria-label='search experiments'
-            value={searchInput}
+            value={searchBoxValue}
             onChange={this.handleSearchInputChange}
             onPressEnter={this.handleLoadMore}
             data-test-id='search-experiment-input'
           />
           <div css={classNames.experimentListContainer}>
-            <Tree
-              treeData={treeData}
-              dangerouslySetAntdProps={{
-                selectable: true,
-                checkable: true,
-                multiple: true,
-                selectedKeys: activeExperimentIds,
-                checkedKeys: activeExperimentIds,
-                onCheck: this.handleCheck,
-                titleRender: this.renderListItem,
-              }}
-            />
+            {!loadingMore ? (
+              <Tree
+                treeData={treeData}
+                dangerouslySetAntdProps={{
+                  selectable: true,
+                  checkable: true,
+                  multiple: true,
+                  selectedKeys: activeExperimentIds,
+                  checkedKeys: activeExperimentIds,
+                  onCheck: this.handleCheck,
+                  titleRender: this.renderListItem,
+                  virtual: true,
+                }}
+              />
+            ) : (
+              'loading'
+            )}
           </div>
         </div>
       </div>
