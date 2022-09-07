@@ -15,6 +15,8 @@ import { CreateExperimentModal } from './modals/CreateExperimentModal';
 import { DeleteExperimentModal } from './modals/DeleteExperimentModal';
 import { RenameExperimentModal } from './modals/RenameExperimentModal';
 import { IconButton } from '../../common/components/IconButton';
+import { SEARCH_MAX_RESULTS } from '../actions';
+
 
 export class ExperimentListView extends Component {
   static propTypes = {
@@ -24,6 +26,7 @@ export class ExperimentListView extends Component {
   };
 
   state = {
+    currentPage:0,
     hidden: false,
     searchInput: '',
     showCreateExperimentModal: false,
@@ -35,6 +38,7 @@ export class ExperimentListView extends Component {
 
   handleSearchInputChange = (event) => {
     this.setState({ searchInput: event.target.value });
+    this.setState({ currentPage: 0 });
   };
 
   updateSelectedExperiment = (experimentId, experimentName) => {
@@ -146,14 +150,23 @@ export class ExperimentListView extends Component {
     const { searchInput } = this.state;
     const { experiments, activeExperimentIds } = this.props;
     const lowerCasedSearchInput = searchInput.toLowerCase();
-    const filteredExperiments = experiments.filter(({ name }) =>
+    const filteredExperiments = experiments.filter(({ name
+    }) =>
       name.toLowerCase().includes(lowerCasedSearchInput),
     );
-    const treeData = filteredExperiments.map(({ name, experiment_id }) => ({
+    const { currentPage } = this.state;
+    const maxPage =
+        (filteredExperiments.length/SEARCH_MAX_RESULTS == Math.floor(filteredExperiments.length/SEARCH_MAX_RESULTS)) ?
+                                                        filteredExperiments.length/SEARCH_MAX_RESULTS - 1 :
+                                                        Math.floor(filteredExperiments.length/SEARCH_MAX_RESULTS);
+    const searchStatusMsg = (filteredExperiments.length>0) ?
+                    ( SEARCH_MAX_RESULTS + " experiments per page ("+ (currentPage+1)+ " of "+ (maxPage+1)+")") :
+                    "No experiments found for search criteria.";
+
+    const treeData = filteredExperiments.slice(currentPage*SEARCH_MAX_RESULTS,(currentPage+1)*SEARCH_MAX_RESULTS).map(({ name, experiment_id }) => ({
       title: name,
       key: experiment_id,
     }));
-
     return (
       <div css={classNames.experimentListOuterContainer}>
         <CreateExperimentModal
@@ -208,7 +221,42 @@ export class ExperimentListView extends Component {
             onChange={this.handleSearchInputChange}
             data-test-id='search-experiment-input'
           />
-          <div css={classNames.experimentListContainer}>
+
+        <div>
+            <table css={{ layout: 'fixed'}}>
+                 <tr>
+                    <td css={{width : "200px",fontSize: '10px'}}>{searchStatusMsg}</td>
+                    <td css={{width : "60px"}} >
+                        <IconButton name='loadFirstPage'
+                          icon={<i className='fa fa-angle-double-left' />}
+                          onClick={() => this.setState({ currentPage: 0 })}
+                          css={{ fontSize: '20px' }}
+                          title={'First '+ SEARCH_MAX_RESULTS + ' experiments'}
+                        />
+                        <IconButton name='loadPreviousPage'
+                          icon={<i className='fa fa-angle-left' />}
+                          onClick={() => this.setState({ currentPage: Math.max(currentPage-1,0) })}
+                          css={{ fontSize: '20px' ,marginLeft:'4px',marginRight:'4px'}}
+                          title={'Previous '+ SEARCH_MAX_RESULTS + ' experiments'}
+                        />
+                        <IconButton name='loadNextPage'
+                          icon={<i className='fa fa-angle-right' />}
+                          onClick={() => this.setState({ currentPage: Math.min(currentPage+1,maxPage) })}
+                          css={{ fontSize: '20px' ,marginLeft:'4px',marginRight:'3px'}}
+                          title={'Next '+ SEARCH_MAX_RESULTS + ' experiments'}
+                        />
+                        <IconButton name='loadLastPage'
+                          icon={<i className='fa fa-angle-double-right' />}
+                          onClick={() => this.setState({ currentPage: maxPage })}
+                          css={{ fontSize: '20px' }}
+                          title={'Last ' + SEARCH_MAX_RESULTS + ' experiments'}
+                        />
+                    </td>
+                 </tr>
+             </table>
+        </div>
+
+        <div css={classNames.experimentListContainer}>
             <Tree
               treeData={treeData}
               dangerouslySetAntdProps={{
@@ -232,6 +280,7 @@ const classNames = {
   experimentListOuterContainer: {
     boxSizing: 'border-box',
     marginLeft: '64px',
+    width: '260px',
   },
   experimentListContainer: {
     overflowY: 'scroll',
