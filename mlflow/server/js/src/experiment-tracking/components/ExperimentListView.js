@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import { debounce } from 'lodash';
 
 import { List } from 'antd';
-import VirtualList from 'rc-virtual-list';
+import InfiniteScroll from 'react-infinite-scroll-component';
 import {
   Input,
   Typography,
@@ -81,11 +81,16 @@ export class ExperimentListView extends Component {
     this.props.dispatchSearchInput(event.target.value);
   };
 
+  debouncedHandleSearchInputChange = debounce(this.handleSearchInputChange, 10);
+
   handleLoadMore = (event) => {
     let params = {};
     const currentInput = this.props.searchInput;
     const previousInput = this.props.previousSearchInput;
     // Leave the filter off if we have a blank string.
+    console.log('loading more');
+    console.log(currentInput);
+    console.log(previousInput);
     if (currentInput !== '') {
       params = { ...params, filter: `name LIKE '%${currentInput}%'` };
     }
@@ -99,18 +104,7 @@ export class ExperimentListView extends Component {
     this.props.dispatchSearchExperimentsApi(params);
   };
 
-  onScroll = (event) => {
-    if (
-      Math.abs(
-        event.target.scrollHeight -
-          (event.target.scrollTop + event.target.getBoundingClientRect().bottom) <=
-          1,
-      )
-    ) {
-      this.handleLoadMore();
-    }
-  };
-  debouncedOnScroll = debounce(this.onScroll, 30);
+  debouncedLoadMore = debounce(this.handleLoadMore, 1000);
 
   updateSelectedExperiment = (experimentId, experimentName) => {
     this.setState({
@@ -190,6 +184,7 @@ export class ExperimentListView extends Component {
     const isActive = activeExperimentIds.includes(item.experiment_id);
     const isChecked = checkedKeys.includes(item.experiment_id);
     const dataTestId = isActive ? 'active-experiment-list-item' : 'experiment-list-item';
+    // console.log(item.experiment_id);
 
     // Clicking the link removes all checks and marks other experiments
     // as not active.
@@ -197,6 +192,7 @@ export class ExperimentListView extends Component {
       <div
         css={classNames.getExperimentListItemContainer(isActive, theme)}
         data-test-id={dataTestId}
+        key={item.experiment_id}
       >
         <List.Item
           key={item.experiment_id}
@@ -206,12 +202,13 @@ export class ExperimentListView extends Component {
           actions={[
             <Checkbox
               id={item.experiment_id}
-              key={item.experiment_id}
+              // key={item.experiment_id}
               onChange={(e) => this.handleCheck(e, item.experiment_id)}
               checked={isChecked || isActive}
               data-test-id='experiment-list-item-check-box'
             ></Checkbox>,
             <Link
+              // key={item.experiment_id}
               className={'experiment-link'}
               to={Routes.getExperimentPageRoute(item.experiment_id)}
               onClick={(e) => {
@@ -223,12 +220,14 @@ export class ExperimentListView extends Component {
               {item.name}
             </Link>,
             <IconButton
+              // key={item.experiment_id}
               icon={<PencilIcon />}
               onClick={this.handleRenameExperiment(item.experiment_id, item.name)}
               data-test-id='rename-experiment-button'
               css={classNames.renameExperiment}
             />,
             <IconButton
+              // key={item.experiment_id}
               icon={<i className='far fa-trash-o' />}
               onClick={this.handleDeleteExperiment(item.experiment_id, item.name)}
               css={classNames.deleteExperiment}
@@ -241,8 +240,10 @@ export class ExperimentListView extends Component {
   };
 
   render() {
-    const { activeExperimentIds, experiments, searchInput, loadingMore } = this.props;
+    const { activeExperimentIds, experiments, searchInput, loadingMore, nextPageToken } = this.props;
     const { hidden, innerHeight } = this.state;
+    console.log('render');
+    console.log(experiments.length);
 
     if (hidden) {
       return (
@@ -301,7 +302,7 @@ export class ExperimentListView extends Component {
               aria-label='search experiments'
               value={searchInput}
               onChange={this.handleSearchInputChange}
-              onPressEnter={this.handleLoadMore}
+              onPressEnter={this.debouncedLoadMore}
               data-test-id='search-experiment-input'
               css={classNames.experimentSearchInput}
             />
@@ -311,25 +312,29 @@ export class ExperimentListView extends Component {
               css={classNames.experimentSearchIcon}
             />
           </div>
-          <List split={false} loading={{ indicator: <Spinner />, spinning: loadingMore }}>
-            <VirtualList
-              data={experiments}
-              itemHeight={10}
-              height={innerHeight}
-              itemKey='experiment_id'
-              onScroll={this.debouncedOnScroll}
-              virtual
-              css={classNames.experimentListContainer}
-            >
-              {(item) => this.renderListItem(item)}
-            </VirtualList>
-          </List>
+          <div id='scrollableDiv' css={classNames.experimentListContainer}>
+          <InfiniteScroll
+            dataLength={experiments.length}
+            next={this.debouncedLoadMore}
+            hasMore={nextPageToken ? true : false}
+            endMessage={<Typography.Text> No more experiments. </Typography.Text>}
+            loader={<Typography.Text > Loading... </Typography.Text>}
+            scrollableTarget={'scrollableDiv'}
+            // scrollThreshold={.99}
+          >
+                {experiments.map((item) => this.renderListItem(item))}
+        </InfiniteScroll>
+        </div>
         </div>
       </div>
     );
   }
 }
 
+              // <List
+                // dataSource={experiments}
+                // split={false}
+                // loading={{ indicator: <Spinner />, spinning: loadingMore }}
 const classNames = {
   experimentListOuterContainer: {
     boxSizing: 'border-box',
@@ -355,7 +360,7 @@ const classNames = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '2px',
+    marginBottom: '12px',
   },
   experimentSearchInput: {
     margin: 0,
@@ -368,11 +373,14 @@ const classNames = {
   },
   experimentListContainer: {
     marginTop: '12px',
-    // Makes the scrollbar stay showing
-    '.rc-virtual-list-scrollbar-show': {
-      display: 'block !important',
-      background: 'rgba(0, 0, 0, 0.5)',
-    },
+    // TODO
+    // maxHeight: '80vh',
+    // display: 'flex',
+    height: '500px',
+    // height: '900px',
+    overflow: 'auto',
+    paddingBottom: '12px',
+    paddingTop: '12px'
   },
   getExperimentListItemContainer: (isActive, theme) => ({
     display: 'flex',
@@ -428,13 +436,17 @@ const mapStateToProps = (state) => {
     experiments = allExperiments;
   }
   const nextPageToken = getSearchExperimentsNextPageToken(state);
+  console.log(nextPageToken);
+  console.log(experiments.length);
+  console.log(previousSearchInput);
+  console.log(searchInput);
   return { experiments, nextPageToken, searchInput, previousSearchInput, loadingMore };
 };
 
 const mapDispatchToProps = (dispatch) => {
   return {
     dispatchSearchExperimentsApi: (params) => {
-      return dispatch(searchExperimentsApi(params));
+      return dispatch(searchExperimentsApi(params))
     },
     dispatchSearchInput: (input) => {
       return dispatch(experimentListSearchInput(input));
