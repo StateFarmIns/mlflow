@@ -240,7 +240,8 @@ export class ExperimentListView extends Component {
   };
 
   render() {
-    const { activeExperimentIds, experiments, searchInput, loadingMore, nextPageToken } = this.props;
+    const { activeExperimentIds, experiments, searchInput, loadingMore, nextPageToken } =
+      this.props;
     const { hidden, innerHeight } = this.state;
     console.log('render');
     console.log(experiments.length);
@@ -313,28 +314,24 @@ export class ExperimentListView extends Component {
             />
           </div>
           <div id='scrollableDiv' css={classNames.experimentListContainer}>
-          <InfiniteScroll
-            dataLength={experiments.length}
-            next={this.debouncedLoadMore}
-            hasMore={nextPageToken ? true : false}
-            endMessage={<Typography.Text> No more experiments. </Typography.Text>}
-            loader={<Typography.Text > Loading... </Typography.Text>}
-            scrollableTarget={'scrollableDiv'}
-            // scrollThreshold={.99}
-          >
-                {experiments.map((item) => this.renderListItem(item))}
-        </InfiniteScroll>
-        </div>
+            <InfiniteScroll
+              dataLength={experiments.length}
+              next={this.debouncedLoadMore}
+              hasMore={!!nextPageToken}
+              endMessage={<Typography.Text> No more experiments. </Typography.Text>}
+              loader={<Typography.Text> Loading... </Typography.Text>}
+              scrollableTarget={'scrollableDiv'}
+              // scrollThreshold={.99}
+            >
+              {experiments.map((item) => this.renderListItem(item))}
+            </InfiniteScroll>
+          </div>
         </div>
       </div>
     );
   }
 }
 
-              // <List
-                // dataSource={experiments}
-                // split={false}
-                // loading={{ indicator: <Spinner />, spinning: loadingMore }}
 const classNames = {
   experimentListOuterContainer: {
     boxSizing: 'border-box',
@@ -376,11 +373,11 @@ const classNames = {
     // TODO
     // maxHeight: '80vh',
     // display: 'flex',
-    height: '500px',
+    height: '80vh',
     // height: '900px',
     overflow: 'auto',
     paddingBottom: '12px',
-    paddingTop: '12px'
+    paddingTop: '12px',
   },
   getExperimentListItemContainer: (isActive, theme) => ({
     display: 'flex',
@@ -446,7 +443,7 @@ const mapStateToProps = (state) => {
 const mapDispatchToProps = (dispatch) => {
   return {
     dispatchSearchExperimentsApi: (params) => {
-      return dispatch(searchExperimentsApi(params))
+      return dispatch(searchExperimentsApi(params));
     },
     dispatchSearchInput: (input) => {
       return dispatch(experimentListSearchInput(input));
