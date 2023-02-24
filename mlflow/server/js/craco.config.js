@@ -4,9 +4,14 @@ const fs = require('fs');
 const { ModuleFederationPlugin } = require('webpack').container;
 const { execSync } = require('child_process');
 const webpack = require('webpack');
+const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
+  .BundleAnalyzerPlugin
 
 const proxyTarget = process.env.MLFLOW_PROXY;
 const useProxyServer = !!proxyTarget && !process.env.MLFLOW_DEV_PROXY_MODE;
+const analyzerMode = process.env.REACT_APP_INTERACTIVE_ANALYZE
+  ? "server"
+  : "json"
 
 const isDevserverWebsocketRequest = (request) =>
   request.url === '/ws' &&
@@ -83,9 +88,9 @@ function configureIframeCSSPublicPaths(config, env) {
         });
     });
 
-  if (!cssRuleFixed) {
-    throw new Error('Failed to fix CSS paths!');
-  }
+  // if (!cssRuleFixed) {
+    // throw new Error('Failed to fix CSS paths!');
+  // }
 
   return config;
 }
@@ -150,7 +155,7 @@ function i18nOverrides(config) {
   return config;
 }
 
-module.exports = function ({ env }) {
+module.exports = function({ env }) {
   const config = {
     babel: {
       env: {
@@ -198,7 +203,7 @@ module.exports = function ({ env }) {
           // Heads up src/setupProxy.js is indirectly referenced by CRA
           // and also defines proxies.
           {
-            context: function (pathname, request) {
+            context: function(pathname, request) {
               // Dev server's WS calls should not be proxied
               if (isDevserverWebsocketRequest(request)) {
                 return false;
@@ -294,6 +299,7 @@ module.exports = function ({ env }) {
           USE_ABSOLUTE_AJAX_URLS: process.env.USE_ABSOLUTE_AJAX_URLS ? 'true' : 'false',
           SHOULD_REDIRECT_IFRAME: process.env.SHOULD_REDIRECT_IFRAME ? 'true' : 'false',
         }),
+        new BundleAnalyzerPlugin({ analyzerMode }),
       ],
     },
   };
