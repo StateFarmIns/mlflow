@@ -245,9 +245,6 @@ ban-relative-imports = "all"
 [tool.ruff.lint.isort]
 forced-separate = ["tests"]
 
-[tool.ruff.lint.flake8-tidy-imports.banned-api]
-"pkg_resources".msg = "We're migrating away from pkg_resources. Please use importlib.resources or importlib.metadata instead."
-
 [tool.clint]
 exclude = [
   "docs",
